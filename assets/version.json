@@ -1,0 +1,17 @@
+{
+  "version": "3.1.0",
+  "versionCode": 310,
+  "releaseDate": "2026-10-25",
+  "mandatory": false,
+  "releaseNotes": "• Ultra-low latency WebSocket streaming (<3ms round-trip)\n• High-performance async Dart network workers\n• Minimized RAM footprint (<45MB on Desktop)\n• System tray background running with instant restore\n• Discord-style smooth auto-updater with one-click restart\n• Responsive layout for Windows and budget Android devices",
+  "windows": {
+    "url": "https://raw.githubusercontent.com/stripx/stripx3v/main/releases/stripx3v-windows.exe",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "type": "exe"
+  },
+  "android": {
+    "url": "https://raw.githubusercontent.com/stripx/stripx3v/main/releases/stripx3v.apk",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "type": "apk"
+  }
+}
