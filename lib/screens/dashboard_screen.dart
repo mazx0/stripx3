@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
+import '../../models/strip_state.dart';
 import '../../providers/ble_provider.dart';
 import '../../providers/connection_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/strip_state_provider.dart';
 import '../../widgets/common/custom_slider.dart';
 import '../../widgets/common/minimalist_card.dart';
 import '../../widgets/common/status_pill.dart';
+import '../../widgets/dashboard/audio_visualizer_card.dart';
 import '../../widgets/dashboard/color_palette_picker.dart';
 import '../../widgets/dashboard/effect_selector.dart';
 import '../../widgets/dashboard/live_metrics_card.dart';
@@ -28,10 +31,10 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 820),
+            constraints: const BoxConstraints(maxWidth: 860),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -85,14 +88,14 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Master Power Banner (Tactile Button only, no redundant toggle)
                 PowerBanner(
                   state: stripState,
                   onTogglePower: stripNotifier.togglePower,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Controls Grid / Sliders
                 MinimalistCard(
@@ -141,7 +144,13 @@ class DashboardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+
+                // Live Audio Reactive Telemetry & Device Config (shown in Audio Sync mode)
+                if (stripState.mode == StripMode.audio && stripState.power) ...[
+                  AudioVisualizerCard(storage: ref.read(storageServiceProvider)),
+                  const SizedBox(height: 12),
+                ],
 
                 // Animation Effects Selector
                 MinimalistCard(
@@ -152,7 +161,7 @@ class DashboardScreen extends ConsumerWidget {
                     onModeSelected: (mode) => stripNotifier.setMode(mode),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Color Engine & Hue Palette
                 MinimalistCard(
@@ -165,11 +174,11 @@ class DashboardScreen extends ConsumerWidget {
                     onSecondaryColorChanged: (c) => stripNotifier.setSecondaryColor(c),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Real-time Telemetry & Performance
                 LiveMetricsCard(connection: connection),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
               ],
             ),
           ),

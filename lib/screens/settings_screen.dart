@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:record/record.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
@@ -7,6 +8,7 @@ import '../../core/constants/app_typography.dart';
 import '../../core/utils/platform_helper.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/update_provider.dart';
+import '../../services/audio/audio_service.dart';
 import '../../services/tray/system_tray_service.dart';
 import '../../widgets/common/minimalist_card.dart';
 
@@ -183,6 +185,112 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: AppTypography.caption.copyWith(color: AppColors.accent),
                         ),
                       ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Audio Hardware Configuration
+                MinimalistCard(
+                  title: 'AUDIO HARDWARE & INPUT DEVICE',
+                  trailing: IconButton(
+                    icon: const Icon(Icons.refresh, size: 16),
+                    tooltip: 'Rescan Audio Devices',
+                    color: AppColors.textTertiary,
+                    onPressed: () {
+                      final storage = ref.read(storageServiceProvider);
+                      AudioService().loadDevices(storage.getSelectedAudioDeviceId());
+                    },
+                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Select which microphone or audio source StripX listens to for the Audio Sync pattern.',
+                        style: AppTypography.bodyMuted,
+                      ),
+                      const SizedBox(height: 12),
+                      ValueListenableBuilder<List<InputDevice>>(
+                        valueListenable: AudioService().devicesNotifier,
+                        builder: (context, devices, _) {
+                          final selected = AudioService().selectedDevice;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceElevated,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selected?.id,
+                                hint: Text(
+                                  devices.isEmpty ? 'Default System Audio Input' : 'Select Audio Source...',
+                                  style: AppTypography.bodyMuted,
+                                ),
+                                isExpanded: true,
+                                dropdownColor: AppColors.surfaceElevated,
+                                icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 18),
+                                items: [
+                                  const DropdownMenuItem<String>(
+                                    value: null,
+                                    child: Text('Default System Audio Input', style: TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+                                  ),
+                                  ...devices.map((d) {
+                                    return DropdownMenuItem<String>(
+                                      value: d.id,
+                                      child: Text(
+                                        d.label.isNotEmpty ? d.label : 'Device ${d.id}',
+                                        style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (selectedId) async {
+                                  InputDevice? chosen;
+                                  if (selectedId != null) {
+                                    final matches = devices.where((d) => d.id == selectedId);
+                                    if (matches.isNotEmpty) chosen = matches.first;
+                                  }
+                                  await AudioService().setInputDevice(chosen);
+                                  if (selectedId != null) {
+                                    ref.read(storageServiceProvider).setSelectedAudioDeviceId(selectedId);
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceHighlight.withAlpha(80),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border.withAlpha(120)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.info_outline, size: 14, color: AppColors.accent),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Tip: To sync with PC speakers/music (Spotify, YouTube, Games), select "Stereo Mix" or "Virtual Cable" as your audio source.',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

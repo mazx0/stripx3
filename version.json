@@ -3,14 +3,14 @@
   "versionCode": 310,
   "releaseDate": "2026-10-26",
   "mandatory": false,
-  "releaseNotes": "• Real-time Audio Reactive lighting with live microphone tracking\n• Brand new custom color animation engine for all BLE strips\n• Fast Connect for saved strips & System Tray enhancements\n• Ultra-low latency local sync (<3ms round-trip)\n• Zero lag 30 FPS visualizer",
+  "releaseNotes": "• Real-time Audio Reactive lighting with live microphone tracking\n• Brand new custom color animation engine for all BLE strips\n• Audio device selector (Mic, Stereo Mix, Virtual Cable)\n• Fast Connect for saved strips & System Tray enhancements\n• Ultra-low latency local sync (<3ms round-trip)\n• Zero lag 30 FPS visualizer",
   "windows": {
-    "url": "https://github.com/USER/REPO/releases/download/v3.1.0/stripx3v-windows.zip",
+    "url": "https://github.com/mazx0/stripx3/releases/download/v3.1.0/stripx3v-windows.zip",
     "sha256": "",
     "type": "zip"
   },
   "android": {
-    "url": "https://github.com/USER/REPO/releases/download/v3.1.0/app-release.apk",
+    "url": "https://github.com/mazx0/stripx3/releases/download/v3.1.0/app-release.apk",
     "sha256": "",
     "type": "apk"
   }

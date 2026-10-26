@@ -12,13 +12,13 @@ class AppConstants {
 
   // Auto-Update Manifest URL (Can be replaced with any self-hosted or raw GitHub URL)
   static const String defaultUpdateManifestUrl =
-      'https://raw.githubusercontent.com/stripx/stripx3v/main/version.json';
+      'https://raw.githubusercontent.com/mazx0/stripx3/main/version.json';
 
   // Desktop Window Dimensions
-  static const double desktopDefaultWidth = 980;
-  static const double desktopDefaultHeight = 680;
-  static const double desktopMinWidth = 800;
-  static const double desktopMinHeight = 560;
+  static const double desktopDefaultWidth = 1040;
+  static const double desktopDefaultHeight = 740;
+  static const double desktopMinWidth = 840;
+  static const double desktopMinHeight = 580;
 
   // Performance & Network Timers
   static const int pingIntervalMs = 2500;
@@ -38,4 +38,5 @@ class AppConstants {
   static const String keyAutoStartHost = 'stripx_auto_start_host';
   static const String keyStripState = 'stripx_saved_strip_state';
   static const String keySavedBleDevices = 'stripx_saved_ble_devices';
+  static const String keySelectedAudioDevice = 'stripx_selected_audio_device';
 }

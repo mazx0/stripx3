@@ -105,7 +105,7 @@ void main() {
       expect(trionesWave[1], equals(0x25)); // Triones wave modeId
     });
 
-    test('AudioService singleton and initial level', () {
+    testWidgets('AudioService singleton and initial level', (tester) async {
       final audio = AudioService();
       expect(audio.isListening, isFalse);
       expect(audio.currentLevel, equals(0.0));

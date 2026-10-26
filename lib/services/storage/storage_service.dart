@@ -127,6 +127,16 @@ class StorageService {
     await _prefs.setBool(AppConstants.keyAutoStartHost, value);
   }
 
+  // --- Audio Device Persistence ---
+
+  String? getSelectedAudioDeviceId() {
+    return _prefs.getString(AppConstants.keySelectedAudioDevice);
+  }
+
+  Future<void> setSelectedAudioDeviceId(String id) async {
+    await _prefs.setString(AppConstants.keySelectedAudioDevice, id);
+  }
+
   // --- Strip State Persistence ---
 
   StripState? getSavedStripState() {

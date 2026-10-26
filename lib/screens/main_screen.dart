@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,12 +6,9 @@ import '../../core/constants/app_typography.dart';
 import '../../core/utils/platform_helper.dart';
 import '../../providers/ble_provider.dart';
 import '../../providers/connection_provider.dart';
-import '../../providers/settings_provider.dart';
 import '../../providers/update_provider.dart';
-import '../../services/tray/system_tray_service.dart';
 import '../../services/updater/update_service.dart';
 import '../../widgets/common/status_pill.dart';
-import '../../widgets/desktop/desktop_title_bar.dart';
 import '../../widgets/updater/update_banner.dart';
 import '../../widgets/updater/update_modal.dart';
 import 'connection_screen.dart';
@@ -43,7 +39,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final updateNotifier = ref.read(updateProvider.notifier);
     final connection = ref.watch(connectionProvider);
     final bleState = ref.watch(bleProvider);
-    final settings = ref.watch(settingsProvider);
 
     return Stack(
       children: [
@@ -51,21 +46,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           backgroundColor: AppColors.background,
           body: Column(
             children: [
-              // Windows Desktop Window Title Bar
-              if (isDesktop)
-                DesktopTitleBar(
-                  showTrayButton: !settings.minimizeToTray,
-                  onMinimizeToTray: () => SystemTrayService().minimizeToTray(),
-                  onClose: () async {
-                    if (settings.minimizeToTray) {
-                      await SystemTrayService().minimizeToTray();
-                    } else {
-                      await SystemTrayService().dispose();
-                      exit(0);
-                    }
-                  },
-                ),
-
               // Discord-Style Auto-Update Banner
               UpdateBanner(
                 updateState: updateState,

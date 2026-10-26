@@ -13,6 +13,7 @@ import 'providers/strip_state_provider.dart';
 import 'providers/update_provider.dart';
 import 'screens/main_screen.dart';
 import 'services/animation/animation_engine.dart';
+import 'services/audio/audio_service.dart';
 import 'services/storage/storage_service.dart';
 import 'services/tray/system_tray_service.dart';
 
@@ -60,6 +61,10 @@ class _StripXAppState extends ConsumerState<StripXApp> {
       ref.read(bleProvider.notifier).initialize(storage);
       ref.read(connectionProvider.notifier).initialize();
       ref.read(updateProvider.notifier).initialize();
+
+      // Load audio input devices
+      final savedAudioId = storage.getSelectedAudioDeviceId();
+      AudioService().loadDevices(savedAudioId);
 
       // Hook BLE commands so Dashboard sliders & colors send to connected Bluetooth strip
       ref.read(stripStateProvider.notifier).setBleBroadcastCallback((key, value) {
