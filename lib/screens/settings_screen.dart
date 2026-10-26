@@ -73,25 +73,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settingsNotifier = ref.read(settingsProvider.notifier);
     final updateNotifier = ref.read(updateProvider.notifier);
     final updateState = ref.watch(updateProvider);
+    final isDesktop = PlatformHelper.isDesktop;
+    final horizontalPadding = isDesktop ? 20.0 : 12.0;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 14),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 820),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header
-                Text('System Preferences', style: AppTypography.titleLarge),
-                const SizedBox(height: 2),
-                Text(
-                  'Network configuration, background services, and self-hosted auto-update',
-                  style: AppTypography.caption,
-                ),
-                const SizedBox(height: 16),
+                // Header (Desktop only)
+                if (isDesktop) ...[
+                  Text('System Preferences', style: AppTypography.titleLarge),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Network configuration, background services, and self-hosted auto-update',
+                    style: AppTypography.caption,
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Background & System Tray (Desktop Only)
                 if (PlatformHelper.isDesktop) ...[

@@ -51,11 +51,12 @@ class _AudioVisualizerCardState extends State<AudioVisualizerCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row with Live Indicators
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+            // Header Row with Live Indicators (Responsive Wrap)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 420;
+                final titleWidget = Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.graphic_eq, color: AppColors.accent, size: 18),
                     const SizedBox(width: 8),
@@ -68,8 +69,10 @@ class _AudioVisualizerCardState extends State<AudioVisualizerCard> {
                       ),
                     ),
                   ],
-                ),
-                Row(
+                );
+
+                final badgesWidget = Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     // Mic vs Synth Mode Badge
                     ValueListenableBuilder<bool>(
@@ -145,8 +148,27 @@ class _AudioVisualizerCardState extends State<AudioVisualizerCard> {
                       },
                     ),
                   ],
-                ),
-              ],
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      titleWidget,
+                      const SizedBox(height: 8),
+                      badgesWidget,
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    titleWidget,
+                    badgesWidget,
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 14),
 
@@ -233,13 +255,17 @@ class _AudioVisualizerCardState extends State<AudioVisualizerCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Input Device (Microphone / Stereo Mix)',
-                          style: AppTypography.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                        Expanded(
+                          child: Text(
+                            'Input Device (Microphone / Stereo Mix)',
+                            style: AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         IconButton(
                           icon: _loadingDevices
                               ? const SizedBox(

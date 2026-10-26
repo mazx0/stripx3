@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/utils/platform_helper.dart';
 import '../../models/connection_state.dart';
 import '../../providers/ble_provider.dart';
 import '../../providers/connection_provider.dart';
@@ -63,68 +64,72 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
     final bleState = ref.watch(bleProvider);
     final bleNotifier = ref.read(bleProvider.notifier);
     final settings = ref.watch(settingsProvider);
+    final isDesktop = PlatformHelper.isDesktop;
+    final horizontalPadding = isDesktop ? 20.0 : 12.0;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 14),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 820),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header with Badges
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Hardware Connection', style: AppTypography.titleLarge),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Direct Bluetooth (BLE) link & Wi-Fi local sync',
-                          style: AppTypography.caption,
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        if (bleState.isConnected) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withAlpha(25),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.accent),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.bluetooth_connected, size: 13, color: AppColors.accent),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'BLE: ${bleState.connectedDeviceName ?? "Connected"}',
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.accent,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                // Header with Badges (Desktop only to prevent redundant status bars on mobile)
+                if (isDesktop) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Hardware Connection', style: AppTypography.titleLarge),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Direct Bluetooth (BLE) link & Wi-Fi local sync',
+                            style: AppTypography.caption,
                           ),
-                          const SizedBox(width: 6),
                         ],
-                        StatusPill(
-                          status: connection.status,
-                          pingMs: connection.pingMs,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+                      ),
+                      Row(
+                        children: [
+                          if (bleState.isConnected) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withAlpha(25),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.accent),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.bluetooth_connected, size: 13, color: AppColors.accent),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'BLE: ${bleState.connectedDeviceName ?? "Connected"}',
+                                    style: AppTypography.caption.copyWith(
+                                      color: AppColors.accent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          StatusPill(
+                            status: connection.status,
+                            pingMs: connection.pingMs,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Top Connection Hub Tabs (Bluetooth vs Wi-Fi)
                 Row(
@@ -517,16 +522,22 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
         // BLE Scanner Card
         MinimalistCard(
           title: 'NEARBY BLUETOOTH CONTROLLERS',
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
+          trailing: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('Show all', style: AppTypography.caption),
-              const SizedBox(width: 4),
-              Switch(
-                value: bleState.showAllDevices,
-                onChanged: (val) => bleNotifier.toggleShowAll(val),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Show all', style: AppTypography.caption),
+                  const SizedBox(width: 4),
+                  Switch(
+                    value: bleState.showAllDevices,
+                    onChanged: (val) => bleNotifier.toggleShowAll(val),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
               ElevatedButton.icon(
                 icon: Icon(
                   bleState.isScanning ? Icons.stop : Icons.search,
@@ -630,9 +641,13 @@ class _ConnectionScreenState extends ConsumerState<ConnectionScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      device.name,
-                                      style: AppTypography.titleMedium.copyWith(fontSize: 13),
+                                    Flexible(
+                                      child: Text(
+                                        device.name,
+                                        style: AppTypography.titleMedium.copyWith(fontSize: 13),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
                                     if (device.isKnownLed) ...[
                                       const SizedBox(width: 6),

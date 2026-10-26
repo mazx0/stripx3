@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
+import '../../core/utils/platform_helper.dart';
 import '../../models/strip_state.dart';
 import '../../providers/ble_provider.dart';
 import '../../providers/connection_provider.dart';
@@ -28,67 +29,72 @@ class DashboardScreen extends ConsumerWidget {
     final connection = ref.watch(connectionProvider);
     final bleState = ref.watch(bleProvider);
 
+    final isDesktop = PlatformHelper.isDesktop;
+    final horizontalPadding = isDesktop ? 20.0 : 12.0;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 860),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Header with Title and Connection Status Pill
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Hardware Dashboard', style: AppTypography.titleLarge),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Real-time synchronized LED controller',
-                          style: AppTypography.caption,
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        if (bleState.isConnected) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withAlpha(25),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.accent),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.bluetooth_connected, size: 12, color: AppColors.accent),
-                                const SizedBox(width: 4),
-                                Text(
-                                  bleState.connectedDeviceName ?? 'BLE Connected',
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.accent,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                // Top Header with Title and Connection Status Pill (Desktop only to prevent mobile duplication)
+                if (isDesktop) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Hardware Dashboard', style: AppTypography.titleLarge),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Real-time synchronized LED controller',
+                            style: AppTypography.caption,
                           ),
-                          const SizedBox(width: 8),
                         ],
-                        StatusPill(
-                          status: connection.status,
-                          pingMs: connection.pingMs,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                      ),
+                      Row(
+                        children: [
+                          if (bleState.isConnected) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withAlpha(25),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.accent),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.bluetooth_connected, size: 12, color: AppColors.accent),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    bleState.connectedDeviceName ?? 'BLE Connected',
+                                    style: AppTypography.caption.copyWith(
+                                      color: AppColors.accent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          StatusPill(
+                            status: connection.status,
+                            pingMs: connection.pingMs,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
                 // Master Power Banner (Tactile Button only, no redundant toggle)
                 PowerBanner(

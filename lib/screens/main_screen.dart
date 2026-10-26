@@ -260,56 +260,61 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   Widget _buildMobileAppBar(dynamic status, int pingMs, bool isBleConnected) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 42, 16, 12),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: AppColors.accentMuted,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.accent),
-                ),
-                child: const Icon(Icons.tune, color: AppColors.accent, size: 14),
+              Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: AppColors.accentMuted,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.accent),
+                    ),
+                    child: const Icon(Icons.tune, color: AppColors.accent, size: 14),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'StripX v3',
+                    style: AppTypography.titleMedium,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                'StripX v3',
-                style: AppTypography.titleMedium,
+              Row(
+                children: [
+                  if (isBleConnected) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentMuted,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.bluetooth_connected, size: 12, color: AppColors.accent),
+                          SizedBox(width: 3),
+                          Text('BLE', style: TextStyle(fontSize: 10, color: AppColors.accent, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  StatusPill(status: status, pingMs: pingMs),
+                ],
               ),
             ],
           ),
-          Row(
-            children: [
-              if (isBleConnected) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentMuted,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.bluetooth_connected, size: 12, color: AppColors.accent),
-                      SizedBox(width: 3),
-                      Text('BLE', style: TextStyle(fontSize: 10, color: AppColors.accent, fontWeight: FontWeight.w700)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              StatusPill(status: status, pingMs: pingMs),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

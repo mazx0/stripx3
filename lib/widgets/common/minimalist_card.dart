@@ -39,17 +39,43 @@ class MinimalistCard extends StatelessWidget {
         children: [
           if (title != null || trailing != null) ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (title != null)
-                    Text(
-                      title!,
-                      style: AppTypography.titleMedium,
-                    ),
-                  ?trailing,
-                ],
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < 440;
+                  if (isCompact && title != null && trailing != null) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title!,
+                          style: AppTypography.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        trailing!,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (title != null)
+                        Expanded(
+                          child: Text(
+                            title!,
+                            style: AppTypography.titleMedium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (trailing != null) ...[
+                        const SizedBox(width: 8),
+                        trailing!,
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
             const Divider(),

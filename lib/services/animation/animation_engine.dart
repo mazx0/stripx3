@@ -25,20 +25,18 @@ class AnimationEngine {
   bool get isRunning => _loopTimer != null;
 
   void updateState(StripState newState) {
-    final modeChanged = _state.mode != newState.mode;
-    final powerChanged = _state.power != newState.power;
-    final speedChanged = _state.speed != newState.speed;
-    final colorChanged = _state.primaryColor != newState.primaryColor ||
-        _state.secondaryColor != newState.secondaryColor ||
-        _state.brightness != newState.brightness ||
-        _state.audioSensitivity != newState.audioSensitivity;
     _state = newState;
 
-    // Manage AudioService listener lifecycle
-    if (_state.power && _state.mode == StripMode.audio) {
-      AudioService().startListening();
+    // Manage AudioService listener lifecycle strictly on mode/power state
+    final shouldListenAudio = _state.power && _state.mode == StripMode.audio;
+    if (shouldListenAudio) {
+      if (!AudioService().isListening) {
+        AudioService().startListening();
+      }
     } else {
-      AudioService().stopListening();
+      if (AudioService().isListening) {
+        AudioService().stopListening();
+      }
     }
 
     if (!_state.power || _state.mode == StripMode.staticMode) {
@@ -46,21 +44,21 @@ class AnimationEngine {
       liveColor.value = _state.primaryColor;
       liveBrightness.value = _state.brightness;
     } else {
-      if (!isRunning || modeChanged || powerChanged || speedChanged || colorChanged) {
+      if (!isRunning) {
         start();
       }
     }
   }
 
   void start() {
-    stop();
+    if (isRunning) return;
     if (!_state.power || _state.mode == StripMode.staticMode) {
       liveColor.value = _state.primaryColor;
       liveBrightness.value = _state.brightness;
       return;
     }
 
-    if (_state.mode == StripMode.audio) {
+    if (_state.mode == StripMode.audio && !AudioService().isListening) {
       AudioService().startListening();
     }
 
@@ -77,7 +75,6 @@ class AnimationEngine {
     _loopTimer?.cancel();
     _loopTimer = null;
     _phase = 0.0;
-    AudioService().stopListening();
   }
 
   void _tick() {

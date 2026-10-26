@@ -57,13 +57,22 @@ class CustomSlider extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(icon, size: 16, color: activeColor),
-                  const SizedBox(width: 8),
-                  Text(label, style: AppTypography.body),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(icon, size: 16, color: activeColor),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: AppTypography.body,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(

@@ -40,11 +40,17 @@ jobs:
         run: |
           Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath build\stripx3v-windows.zip
 
-      - name: Upload Windows Artifact
+      - name: Upload Windows Portable Zip
         uses: actions/upload-artifact@v4
         with:
-          name: stripx3v-windows
+          name: stripx3v-windows-zip
           path: build/stripx3v-windows.zip
+
+      - name: Upload Windows Release Folder (Direct .exe and DLLs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: stripx3v-windows-binaries
+          path: build/windows/x64/runner/Release/
 
   build-android:
     name: Build Android APK
@@ -89,7 +95,7 @@ jobs:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
-          name: stripx3v-windows
+          name: stripx3v-windows-zip
           path: artifacts
 
       - name: Download Android Artifact

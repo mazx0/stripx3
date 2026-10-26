@@ -21,6 +21,9 @@ class AudioService {
   Timer? _beatResetTimer;
 
   bool _isListening = false;
+  bool _isStarting = false;
+  bool _isStopping = false;
+  bool _hasLoggedUnavailable = false;
   double _currentLevel = 0.0; // 0.0 (silence) to 1.0 (peak loud)
   double _simPhase = 0.0;
 
@@ -69,27 +72,37 @@ class AudioService {
     }
   }
 
-  /// Start monitoring audio levels
+  /// Start monitoring audio levels with concurrency locks and Windows WASAPI compatibility
   Future<void> startListening() async {
-    if (_isListening) return;
+    if (_isListening || _isStarting) return;
+    _isStarting = true;
 
     try {
       final hasPermission = await _recorder.hasPermission();
       if (hasPermission) {
         final tempDir = await getTemporaryDirectory();
-        final tempPath = p.join(tempDir.path, 'stripx_audio_probe.m4a');
+        final ext = Platform.isWindows ? 'wav' : 'm4a';
+        final tempPath = p.join(tempDir.path, 'stripx_audio_probe.$ext');
+
+        // Clean up any stale probe file before starting sink
+        final probeFile = File(tempPath);
+        if (await probeFile.exists()) {
+          await probeFile.delete().catchError((_) => probeFile);
+        }
 
         await _recorder.start(
           RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 32000,
-            sampleRate: 16000,
+            encoder: Platform.isWindows ? AudioEncoder.wav : AudioEncoder.aacLc,
+            bitRate: 64000,
+            sampleRate: 44100,
+            numChannels: 1,
             device: _selectedDevice,
           ),
           path: tempPath,
         );
 
         isRealMicNotifier.value = true;
+        _hasLoggedUnavailable = false;
         _ampSub = _recorder.onAmplitudeChanged(const Duration(milliseconds: 35)).listen((amp) {
           final db = amp.current.clamp(-55.0, -5.0);
           final normalized = (db + 55.0) / 50.0; // 0.0 to 1.0
@@ -118,7 +131,12 @@ class AudioService {
         return;
       }
     } catch (e) {
-      debugPrint('AudioService mic capture unavailable ($e). Falling back to dynamic beat synth.');
+      if (!_hasLoggedUnavailable) {
+        _hasLoggedUnavailable = true;
+        debugPrint('AudioService mic capture unavailable: $e. Falling back to dynamic beat synth.');
+      }
+    } finally {
+      _isStarting = false;
     }
 
     // Fallback: energetic algorithmic beat generator if microphone is not accessible
@@ -144,29 +162,34 @@ class AudioService {
 
   /// Stop audio monitoring and release microphone resources
   Future<void> stopListening() async {
+    if ((!_isListening && !_isStarting) || _isStopping) return;
+    _isStopping = true;
+
     _simulatedTimer?.cancel();
     _simulatedTimer = null;
     _beatResetTimer?.cancel();
     _beatResetTimer = null;
 
-    if (_isListening) {
-      _isListening = false;
-      _currentLevel = 0.0;
-      audioLevelNotifier.value = 0.0;
-      isBeatNotifier.value = false;
-      try {
-        await _ampSub?.cancel();
-        _ampSub = null;
-        if (await _recorder.isRecording()) {
-          final recordedPath = await _recorder.stop();
-          if (recordedPath != null) {
-            final file = File(recordedPath);
-            if (await file.exists()) {
-              await file.delete().catchError((_) => file);
-            }
+    _isListening = false;
+    _currentLevel = 0.0;
+    audioLevelNotifier.value = 0.0;
+    isBeatNotifier.value = false;
+
+    try {
+      await _ampSub?.cancel();
+      _ampSub = null;
+      if (await _recorder.isRecording()) {
+        final recordedPath = await _recorder.stop();
+        if (recordedPath != null) {
+          final file = File(recordedPath);
+          if (await file.exists()) {
+            await file.delete().catchError((_) => file);
           }
         }
-      } catch (_) {}
+      }
+    } catch (_) {
+    } finally {
+      _isStopping = false;
     }
   }
 

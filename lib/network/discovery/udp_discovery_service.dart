@@ -35,27 +35,33 @@ class UdpDiscoveryService {
       );
       _socket?.broadcastEnabled = true;
 
-      _socket?.listen((RawSocketEvent event) {
-        if (event == RawSocketEvent.read) {
-          final datagram = _socket?.receive();
-          if (datagram == null) return;
+      _socket?.listen(
+        (RawSocketEvent event) {
+          if (event == RawSocketEvent.read) {
+            final datagram = _socket?.receive();
+            if (datagram == null) return;
 
-          try {
-            final text = utf8.decode(datagram.data);
-            final msg = jsonDecode(text) as Map<String, dynamic>;
-            if (msg['type'] == 'PROBE') {
-              // Immediately respond to the client's discovery probe
-              _sendBeacon(
-                targetAddress: datagram.address,
-                targetPort: datagram.port,
-                hostName: hostName,
-                wsPort: wsPort,
-                localIp: localIp,
-              );
-            }
-          } catch (_) {}
-        }
-      });
+            try {
+              final text = utf8.decode(datagram.data);
+              final msg = jsonDecode(text) as Map<String, dynamic>;
+              if (msg['type'] == 'PROBE') {
+                // Immediately respond to the client's discovery probe
+                _sendBeacon(
+                  targetAddress: datagram.address,
+                  targetPort: datagram.port,
+                  hostName: hostName,
+                  wsPort: wsPort,
+                  localIp: localIp,
+                );
+              }
+            } catch (_) {}
+          }
+        },
+        onError: (error, stackTrace) {
+          // Suppress Windows host unreachable (errno 1232) or disconnected interface socket errors
+        },
+        cancelOnError: false,
+      );
 
       // Periodically broadcast beacon to whole local network subnet
       _beaconTimer = Timer.periodic(
@@ -123,38 +129,44 @@ class UdpDiscoveryService {
       );
       _socket?.broadcastEnabled = true;
 
-      _socket?.listen((RawSocketEvent event) {
-        if (event == RawSocketEvent.read) {
-          final datagram = _socket?.receive();
-          if (datagram == null) return;
+      _socket?.listen(
+        (RawSocketEvent event) {
+          if (event == RawSocketEvent.read) {
+            final datagram = _socket?.receive();
+            if (datagram == null) return;
 
-          try {
-            final text = utf8.decode(datagram.data);
-            final msg = jsonDecode(text) as Map<String, dynamic>;
+            try {
+              final text = utf8.decode(datagram.data);
+              final msg = jsonDecode(text) as Map<String, dynamic>;
 
-            if (msg['type'] == 'BEACON' && msg['service'] == 'stripx3v') {
-              final senderIp = msg['ip'] as String? ?? datagram.address.address;
-              final wsPort = (msg['port'] as num?)?.toInt() ?? AppConstants.defaultWsPort;
-              final hostId = msg['id'] as String? ?? '$senderIp:$wsPort';
-              final hostName = msg['name'] as String? ?? 'StripX PC Host';
-              final platform = msg['platform'] as String? ?? 'Desktop';
+              if (msg['type'] == 'BEACON' && msg['service'] == 'stripx3v') {
+                final senderIp = msg['ip'] as String? ?? datagram.address.address;
+                final wsPort = (msg['port'] as num?)?.toInt() ?? AppConstants.defaultWsPort;
+                final hostId = msg['id'] as String? ?? '$senderIp:$wsPort';
+                final hostName = msg['name'] as String? ?? 'StripX PC Host';
+                final platform = msg['platform'] as String? ?? 'Desktop';
 
-              final device = DiscoveredDevice(
-                id: hostId,
-                name: hostName,
-                ip: senderIp,
-                port: wsPort,
-                platform: platform,
-                lastSeen: DateTime.now(),
-              );
+                final device = DiscoveredDevice(
+                  id: hostId,
+                  name: hostName,
+                  ip: senderIp,
+                  port: wsPort,
+                  platform: platform,
+                  lastSeen: DateTime.now(),
+                );
 
-              _discoveredMap[hostId] = device;
-              _pruneStaleDevices();
-              _discoveredController.add(_discoveredMap.values.toList());
-            }
-          } catch (_) {}
-        }
-      });
+                _discoveredMap[hostId] = device;
+                _pruneStaleDevices();
+                _discoveredController.add(_discoveredMap.values.toList());
+              }
+            } catch (_) {}
+          }
+        },
+        onError: (error, stackTrace) {
+          // Suppress Windows host unreachable (errno 1232) or network interface socket errors
+        },
+        cancelOnError: false,
+      );
 
       // Send periodic probe every 2 seconds
       _beaconTimer = Timer.periodic(const Duration(seconds: 2), (_) {
